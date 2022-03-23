@@ -1,19 +1,23 @@
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <vector>
+#include <atomic>
+#include <chrono>
 #include <exception>
 #include <fstream>
+#include <functional>
+#include <iostream>
 #include <random>
+#include <sstream>
+#include <string>
 #include <thread>
-#include <chrono>
+#include <vector>
 
 namespace param 
 {
+    // namespace contains the arguments values;
     enum class Modes 
     {
         Generative,
-        Calculate
+        Calculate,
+        //Help,
     };
 
     std::string filename;
@@ -35,6 +39,8 @@ void setFileName(const std::string& str);
 void runMPoint();
 void generatePoints(int count, const std::string& dest);
 void calculateMPoint(int threads, const std::string& src);
+
+std::atomic<int> finishedThreads(0);
 
 int main(int argc, char *argv[]) 
 {
@@ -145,7 +151,7 @@ void generatePoints(int count, const std::string& dest)
 {
     std::ofstream ofs(dest);
     std::default_random_engine generator;
-    std::uniform_real_distribution<double> distribution(0.0, 100.0);
+    std::uniform_real_distribution<double> distribution(0.0, 10.0);
 
     if(!ofs.is_open()) {
         throw std::runtime_error("Cannot create the " + dest + " file");
@@ -191,19 +197,38 @@ std::vector<point3> parseFile(const std::string& src){
     return res;
 }
 
-// check
-void runWarp(int id, int threads, std::vector<point3>& vec) 
+void runThread(int id, int threads, std::vector<point3>& vec) 
 {
+    // if(id == 0) {
+    //     int dbg = 0;
+    //     dbg++;
+    // }
+    // if(id == 1) {
+    //     int dbg = 0;
+    //     dbg++;
+    // }
+    // if(id == 2) {
+    //     int dbg = 0;
+    //     dbg++;
+    // }
+
     const auto N = vec.size();
-    for(int i = 0; i < N / threads - 1; ++i) {
+    for(int i = 0; i < N / threads; ++i) {
+        int p2idx = N - threads * (i + 1) + id;
+        if(p2idx < threads) {
+            break;
+        }
+
         point3 p1 = vec[id];
-        point3 p2 = vec[N-i*threads - id]; // 
-        vec[id].x = (p1.x*p1.m + p2.x*p2.m) / (p1.m + p2.m); //
-        vec[id].y = (p1.y*p1.m + p2.y*p2.m) / (p1.m + p2.m); //
+        point3 p2 = vec[p2idx];
+        vec[id].x = (p1.x*p1.m + p2.x*p2.m) / (p1.m + p2.m);
+        vec[id].y = (p1.y*p1.m + p2.y*p2.m) / (p1.m + p2.m);
+        vec[id].m = p1.m + p2.m;
     }
+
+    finishedThreads.fetch_add(1, std::memory_order::memory_order_seq_cst);
 }
 
-// todo
 void calculateMPoint(int threads, const std::string& src) 
 {
     std::vector<point3> points = parseFile(src);
@@ -212,24 +237,26 @@ void calculateMPoint(int threads, const std::string& src)
     auto start = std::chrono::steady_clock::now();
 
     for(int i = 0; i < threads; ++i) {
-        std::thread(runWarp, i, threads, points);
+        std::thread([=, &points]{runThread(i, threads, points);}).detach();
     }
 
-    // wait
-    //check
+    // wait for all threads to finish
+    while (finishedThreads.load(std::memory_order_seq_cst) != threads);
+
+    // sum up:
+    double x = 0, y = 0, m = 0;
     for(int i = 0; i < threads; ++i) {
-        double x = 0, y = 0, m = 0;
-        for(int j = 0; j < threads; ++j) {
-            x += points[j].x * points[j].m;
-            y += points[j].y * points[j].m;
-            m += points[j].m;
-        }
-        res = point3{x/m, y/m, m };
+        x += points[i].x * points[i].m;
+        y += points[i].y * points[i].m;
+        m += points[i].m;
     }
+    res = point3{x/m, y/m, m };
+
     auto end = std::chrono::steady_clock::now();
 
+    // output results:
     std::cout << "Result: " << "{" << res.x << ", " << res.y << "}" << "    m = " << res.m << std::endl; 
     std::cout << "Elapsed time: "
         << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()
-        << "microseconds" << std::endl;
+        << " microseconds" << std::endl;
 }
