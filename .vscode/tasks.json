@@ -10,6 +10,7 @@
                 //"-H",   //pch
                 "-g",
                 "${file}",
+                "src/handler.cpp",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",
                 "-lboost_system",

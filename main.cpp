@@ -1,48 +1,55 @@
-#include "cpprest.hpp"
 #include <iostream>
 
-int main(int argc, char* argv[])
+#include "include/stdafx.h"
+#include "include/handler.h"
+
+using namespace std;
+using namespace web;
+using namespace http;
+using namespace utility;
+using namespace http::experimental::listener;
+
+std::unique_ptr<handler> g_httpHandler;
+
+void on_initialize(const string_t& address);
+void on_shutdown();
+
+int main(int argc, char *argv[])
 {
-    auto fileStream = std::make_shared<ostream>();
+    utility::string_t port = U("800");
 
-    // Open stream to output file.
-    pplx::task<void> requestTask = fstream::open_ostream(U("results.html")).then([=](ostream outFile)
-    {
-        *fileStream = outFile;
-
-        // Create http_client to send the request.
-        http_client client(U("http://www.bing.com/"));
-
-        // Build request URI and start the request.
-        uri_builder builder(U("/search"));
-        builder.append_query(U("q"), U("cpprestsdk github"));
-        return client.request(methods::GET, builder.to_string());
-    })
-
-    // Handle response headers arriving.
-    .then([=](http_response response)
-    {
-        printf("Received response status code:%u\n", response.status_code());
-
-        // Write response body into the file.
-        return response.body().read_to_end(fileStream->streambuf());
-    })
-
-    // Close the file stream.
-    .then([=](size_t)
-    {
-        return fileStream->close();
-    });
-
-    // Wait for all the outstanding I/O to complete and handle any exceptions
-    try
-    {
-        requestTask.wait();
-    }
-    catch (const std::exception &e)
-    {
-        printf("Error exception:%s\n", e.what());
+    utility::string_t address = U("http://127.0.0.1:");
+    if(argc > 1) {
+        address = argv[1];    
     }
 
+    address.append(port);
+
+    on_initialize(address);
+    std::cout << "Press ENTER to exit." << std::endl;
+
+    std::string line;
+    std::getline(std::cin, line);
+
+    on_shutdown();
     return 0;
+}
+
+void on_initialize(const string_t& address)
+{
+    uri_builder uri(address);
+
+    auto addr = uri.to_uri().to_string();
+    g_httpHandler = std::unique_ptr<handler>(new handler(addr));
+    g_httpHandler->open().wait();
+
+    ucout << utility::string_t(U("Listening for requests at: ")) << addr << std::endl;
+
+    return;
+}
+
+void on_shutdown()
+{
+    g_httpHandler->close().wait();
+    return;
 }
