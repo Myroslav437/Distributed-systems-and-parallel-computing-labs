@@ -46,8 +46,35 @@ void StoreCrudSet::Get(web::http::http_request message)
 
 void StoreCrudSet::Post(web::http::http_request message) 
 {
+    try{
+        const auto data = message.content_ready().get().extract_vector().get();
+        const utility::string_t body = { data.begin(), data.end() };
 
-    
+        web::json::value jval = web::json::value::parse(body);
+        if(!jval.is_null()) {
+            int jsize = jval.size();
+            for(int i = 0; i < jsize; ++i) {
+                auto store = JsonConverter::JsonToStore(jval[i]);
+                Dbcontroller::GetInstance()->addStore(store);
+            }
+
+            message.reply(web::http::status_codes::OK,  U("text/plain")).then([](pplx::task<void> t)
+            {
+                try { t.get(); }
+                catch(...) { }
+            });
+        }
+        else{
+            throw std::invalid_argument("Invalid JSON string");
+        }
+    }
+    catch(const std::exception& e) {
+        message.reply(web::http::status_codes::BadRequest, e.what(),  U("text/plain")).then([](pplx::task<void> t)
+		{
+			try { t.get(); }
+			catch(...) { }
+    	});
+    }
 }
 
 void StoreCrudSet::Put(web::http::http_request message) 

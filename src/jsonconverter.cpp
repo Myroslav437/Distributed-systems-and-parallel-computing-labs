@@ -43,9 +43,9 @@ Database::promotion_t JsonConverter::JsonToPromotion(const web::json::value& val
 {
     // // <promotionDescription, promotionValidFrom, promotionValidUntill>:
     // using promotion_t = std::tuple<std::string, std::string, std::string>;
-    std::string promotionDescription = val.at(U("promotionDescription")).serialize();
-    std::string promotionValidFrom = val.at(U("promotionValidFrom")).serialize();
-    std::string promotionValidUntill = val.at(U("promotionValidUntill")).serialize();
+    std::string promotionDescription = val.at(U("promotionDescription")).as_string();
+    std::string promotionValidFrom = val.at(U("promotionValidFrom")).as_string();
+    std::string promotionValidUntill = val.at(U("promotionValidUntill")).as_string();
 
     return Database::promotion_t(promotionDescription, promotionValidFrom, promotionValidUntill);
 }
@@ -56,8 +56,8 @@ Database::product_t JsonConverter::JsonToProduct(const web::json::value& val)
     // using product_t = std::tuple<float, std::string,std::string>;
 
     float productPrice = val.at(U("productPrice")).as_double();
-    std::string productName = val.at(U("productName")).serialize();
-    std::string productManufacturer = val.at(U("productManufacturer")).serialize();
+    std::string productName = val.at(U("productName")).as_string();
+    std::string productManufacturer = val.at(U("productManufacturer")).as_string();
 
     return Database::product_t(productPrice, productName, productManufacturer);
 
@@ -67,9 +67,9 @@ Database::store_t JsonConverter::JsonToStore(const web::json::value& val)
     // // <storeAddress, storeManagerEmail, storeManagerPhone>:
     // using store_t = std::tuple<std::string, std::string, std::string>
 
-    std::string storeAddress = val.at(U("storeAddress")).serialize();
-    std::string storeManagerEmail = val.at(U("storeManagerEmail")).serialize();
-    std::string storeManagerPhone = val.at(U("storeManagerPhone")).serialize();
+    std::string storeAddress = val.at(U("storeAddress")).as_string();
+    std::string storeManagerEmail = val.at(U("storeManagerEmail")).as_string();
+    std::string storeManagerPhone = val.at(U("storeManagerPhone")).as_string();
 
     return Database::promotion_t(storeAddress, storeManagerEmail, storeManagerPhone);
 }
