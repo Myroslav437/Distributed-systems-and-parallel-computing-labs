@@ -42,8 +42,13 @@ void handler::handle_get(http_request message)
 
         if(crudMap.find(firstDir) != crudMap.end()) {
             pplx::task<void>([=]{crudMap[firstDir]->Get(message);});
-            //std::thread thr([=]{crudMap[firstDir]->Get(message);});
-            //thr.detach();
+        }
+        else {
+            try {   
+                message.reply(status_codes::NotFound);
+            }
+            catch(...) { }
+    
         }
     }
     catch(...) {
@@ -57,25 +62,82 @@ void handler::handle_get(http_request message)
 
 void handler::handle_post(http_request message)
 {
-    ucout <<  message.to_string() << endl;
+    ucout << message.to_string() << endl;
+    try {
+        web::uri myuri(message.request_uri());
+        std::string firstDir = http::uri::split_path(myuri.path())[0];
 
-    message.reply(status_codes::OK,message.to_string());
-    return ;
+        if(crudMap.find(firstDir) != crudMap.end()) {
+            pplx::task<void>([=]{crudMap[firstDir]->Post(message);});
+        }
+        else {
+            try {   
+                message.reply(status_codes::NotFound);
+            }
+            catch(...) { }
+    
+        }
+    }
+    catch(...) {
+        try {   
+            message.reply(status_codes::InternalError);
+        }
+        catch(...) { }
+    }
+    return;
 };
 
 void handler::handle_delete(http_request message)
 {
-    ucout <<  message.to_string() << endl;
+    ucout << message.to_string() << endl;
+    try {
+        web::uri myuri(message.request_uri());
+        std::string firstDir = http::uri::split_path(myuri.path())[0];
 
-    message.reply(status_codes::OK, message.to_string());
+        if(crudMap.find(firstDir) != crudMap.end()) {
+            pplx::task<void>([=]{crudMap[firstDir]->Delete(message);});
+        }
+        else {
+            try {   
+                message.reply(status_codes::NotFound);
+            }
+            catch(...) { }
+    
+        }
+    }
+    catch(...) {
+        try {   
+            message.reply(status_codes::InternalError);
+        }
+        catch(...) { }
+    }
     return;
 };
 
 
 void handler::handle_put(http_request message)
 {
-    ucout <<  message.to_string() << endl;
+    ucout << message.to_string() << endl;
+    try {
+        web::uri myuri(message.request_uri());
+        std::string firstDir = http::uri::split_path(myuri.path())[0];
 
-    message.reply(status_codes::OK, message.to_string());
+        if(crudMap.find(firstDir) != crudMap.end()) {
+            pplx::task<void>([=]{crudMap[firstDir]->Put(message);});
+        }
+        else {
+            try {   
+                message.reply(status_codes::NotFound);
+            }
+            catch(...) { }
+    
+        }
+    }
+    catch(...) {
+        try {   
+            message.reply(status_codes::InternalError);
+        }
+        catch(...) { }
+    }
     return;
 };
