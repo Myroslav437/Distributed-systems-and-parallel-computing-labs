@@ -15,12 +15,15 @@
                     "src/dbcontroller.cpp",
                     "src/jsonconverter.cpp",
                     "src/promotioncrudset.cpp",
+                    "src/storecrudset.cpp",
+                    "src/productcrudset.cpp",
                 "-o",
                     "${fileDirname}/${fileBasenameNoExtension}",
                 "-lboost_system",
                 "-lcrypto",
                 "-lssl",
-                "-lcpprest"
+                "-lcpprest",
+                "-pthread"
             ],
             "options": {
                 "cwd": "${fileDirname}"

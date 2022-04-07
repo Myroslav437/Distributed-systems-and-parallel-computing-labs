@@ -22,6 +22,8 @@ web::json::value JsonConverter::productsToJson(const Database::product_t& p)
     val["productPrice"] = web::json::value::number(std::get<0>(p));
     val["productName"] = web::json::value::string(std::get<1>(p));
     val["productManufacturer"] = web::json::value::string(std::get<2>(p));
+
+    return val;
 }
 
 web::json::value JsonConverter::storeToJson(const Database::store_t& p) 
@@ -33,15 +35,17 @@ web::json::value JsonConverter::storeToJson(const Database::store_t& p)
     val["storeAddress"] = web::json::value::string(std::get<0>(p));
     val["storeManagerEmail"] = web::json::value::string(std::get<1>(p));
     val["storeManagerPhone"] = web::json::value::string(std::get<2>(p));
+
+    return val;
 }
 
 Database::promotion_t JsonConverter::JsonToPromotion(const web::json::value& val) 
 {
     // // <promotionDescription, promotionValidFrom, promotionValidUntill>:
     // using promotion_t = std::tuple<std::string, std::string, std::string>;
-    std::string promotionDescription = val.at(U("promotionDescription")).to_string();
-    std::string promotionValidFrom = val.at(U("promotionValidFrom")).to_string();
-    std::string promotionValidUntill = val.at(U("promotionValidUntill")).to_string();
+    std::string promotionDescription = val.at(U("promotionDescription")).serialize();
+    std::string promotionValidFrom = val.at(U("promotionValidFrom")).serialize();
+    std::string promotionValidUntill = val.at(U("promotionValidUntill")).serialize();
 
     return Database::promotion_t(promotionDescription, promotionValidFrom, promotionValidUntill);
 }
@@ -52,8 +56,8 @@ Database::product_t JsonConverter::JsonToProduct(const web::json::value& val)
     // using product_t = std::tuple<float, std::string,std::string>;
 
     float productPrice = val.at(U("productPrice")).as_double();
-    std::string productName = val.at(U("productName")).to_string();
-    std::string productManufacturer = val.at(U("productManufacturer")).to_string();
+    std::string productName = val.at(U("productName")).serialize();
+    std::string productManufacturer = val.at(U("productManufacturer")).serialize();
 
     return Database::product_t(productPrice, productName, productManufacturer);
 
@@ -63,9 +67,9 @@ Database::store_t JsonConverter::JsonToStore(const web::json::value& val)
     // // <storeAddress, storeManagerEmail, storeManagerPhone>:
     // using store_t = std::tuple<std::string, std::string, std::string>
 
-    std::string storeAddress = val.at(U("storeAddress")).to_string();
-    std::string storeManagerEmail = val.at(U("storeManagerEmail")).to_string();
-    std::string storeManagerPhone = val.at(U("storeManagerPhone")).to_string();
+    std::string storeAddress = val.at(U("storeAddress")).serialize();
+    std::string storeManagerEmail = val.at(U("storeManagerEmail")).serialize();
+    std::string storeManagerPhone = val.at(U("storeManagerPhone")).serialize();
 
     return Database::promotion_t(storeAddress, storeManagerEmail, storeManagerPhone);
 }

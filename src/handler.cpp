@@ -1,5 +1,9 @@
 #include "../include/handler.h"
 #include "../include/promotioncrudset.h"
+#include "../include/storecrudset.h"
+#include "../include/productcrudset.h"
+
+#include <thread>
 
 handler::handler(utility::string_t url):m_listener(url)
 {
@@ -9,6 +13,8 @@ handler::handler(utility::string_t url):m_listener(url)
     m_listener.support(methods::DEL, std::bind(&handler::handle_delete, this, std::placeholders::_1));
 
     crudMap["promotions"] = std::shared_ptr<CrudCommandSet>(new PromotionCrudSet);
+    crudMap["stores"] = std::shared_ptr<CrudCommandSet>(new StoreCrudSet);
+    crudMap["products"] = std::shared_ptr<CrudCommandSet>(new ProductCrudSet);
 }
 
 void handler::handle_error(pplx::task<void>& t)
@@ -30,27 +36,23 @@ void handler::handle_error(pplx::task<void>& t)
 void handler::handle_get(http_request message)
 {
     ucout << message.to_string() << endl;
-    ucout << "absolute_uri\t" << message.absolute_uri().to_string() << endl;
+    try {
+        web::uri myuri(message.request_uri());
+        std::string firstDir = http::uri::split_path(myuri.path())[0];
 
-    web::uri myuri(message.request_uri());
-
-    ucout << "path\t" << myuri.path() << std::endl;
-    auto paths = http::uri::split_path(myuri.path());  
-    for(const auto& p : paths) {
-        std::cout << p << std::endl;
+        if(crudMap.find(firstDir) != crudMap.end()) {
+            pplx::task<void>([=]{crudMap[firstDir]->Get(message);});
+            //std::thread thr([=]{crudMap[firstDir]->Get(message);});
+            //thr.detach();
+        }
     }
-
-    ucout << "query\t" << myuri.query() << std::endl;
-    auto queries = http::uri::split_query(myuri.query());
-    for(const auto& p : queries) {
-        std::cout << p.first << "\t" << p.second << std::endl;
+    catch(...) {
+        try {   
+            message.reply(status_codes::InternalError);
+        }
+        catch(...) { }
     }
-
-    this->crudMap["promotions"]->Get(message);
-    //pplx::task<void>([this, message](){});
-
     return;
-
 };
 
 void handler::handle_post(http_request message)

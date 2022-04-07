@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
     address.append(port);
 
     on_initialize(address);
+    initDatabase();
     std::cout << "Press ENTER to exit." << std::endl;
 
     std::string line;

@@ -61,6 +61,7 @@
         "string": "cpp",
         "string_view": "cpp",
         "*.ipp": "cpp",
-        "shared_mutex": "cpp"
+        "shared_mutex": "cpp",
+        "*.dat": "cpp"
     }
 }
