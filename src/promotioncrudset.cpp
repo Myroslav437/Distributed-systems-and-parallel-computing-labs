@@ -56,10 +56,43 @@ void PromotionCrudSet::Post(web::http::http_request message)
 void PromotionCrudSet::Put(web::http::http_request message) 
 {
     try {
+        auto queries = web::http::uri::split_query(message.absolute_uri().query());
+        auto it = queries.begin();
 
+        web::json::value jval;
+
+        if(queries.size() == 0) {
+            throw std::invalid_argument("Invalid query");
+        }
+        else if((it = queries.find("id")) != queries.end()) {
+            auto val = Dbcontroller::GetInstance()->getPromotion(std::stoi(it->second));
+            // <promotionDescription, promotionValidFrom, promotionValidUntill>:
+            if((it = queries.find("promotionDescription")) != queries.end()) {
+                std::get<0>(val.second.get()) = it->second;
+            }
+            if((it = queries.find("promotionValidFrom")) != queries.end()) {
+                std::get<1>(val.second.get()) = it->second;
+            }
+            if((it = queries.find("promotionValidUntill")) != queries.end()) {
+                std::get<2>(val.second.get()) = it->second;
+            }
+        }
+        else if (it == queries.end()){
+            throw std::invalid_argument("Invalid query");
+        }
+
+        message.reply(web::http::status_codes::OK, jval).then([](pplx::task<void> t)
+		{
+			try { t.get(); }
+			catch(...) { }
+    	});
     }
     catch(const std::exception& e) {
-
+        message.reply(web::http::status_codes::BadRequest, e.what(),  U("text/plain")).then([](pplx::task<void> t)
+		{
+			try { t.get(); }
+			catch(...) { }
+    	});
     }
 }
 
