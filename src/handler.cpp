@@ -1,4 +1,5 @@
 #include "../include/handler.h"
+#include "../include/promotioncrudset.h"
 
 handler::handler(utility::string_t url):m_listener(url)
 {
@@ -6,6 +7,8 @@ handler::handler(utility::string_t url):m_listener(url)
     m_listener.support(methods::PUT, std::bind(&handler::handle_put, this, std::placeholders::_1));
     m_listener.support(methods::POST, std::bind(&handler::handle_post, this, std::placeholders::_1));
     m_listener.support(methods::DEL, std::bind(&handler::handle_delete, this, std::placeholders::_1));
+
+    crudMap["promotions"] = std::shared_ptr<CrudCommandSet>(new PromotionCrudSet);
 }
 
 void handler::handle_error(pplx::task<void>& t)
@@ -27,31 +30,24 @@ void handler::handle_error(pplx::task<void>& t)
 void handler::handle_get(http_request message)
 {
     ucout << message.to_string() << endl;
- //   ucout << message.relative_uri().to_string() << endl;
+    ucout << "absolute_uri\t" << message.absolute_uri().to_string() << endl;
 
-    auto paths = http::uri::split_path(http::uri::decode(message.relative_uri().path()));
+    web::uri myuri(message.request_uri());
 
-    concurrency::streams::fstream::open_istream(U("static/index.html"), std::ios::in).then([=](concurrency::streams::istream is)
-    {
-        message.reply(status_codes::OK, is,  U("text/html"))
-		.then([](pplx::task<void> t)
-		{
-			try{
-				t.get();
-			}
-			catch(...){
-				//
-			}
-	});
-    }).then([=](pplx::task<void>t)
-	{
-		try{
-			t.get();
-		}
-		catch(...){
-			message.reply(status_codes::InternalError,U("INTERNAL ERROR "));
-		}
-	});
+    ucout << "path\t" << myuri.path() << std::endl;
+    auto paths = http::uri::split_path(myuri.path());  
+    for(const auto& p : paths) {
+        std::cout << p << std::endl;
+    }
+
+    ucout << "query\t" << myuri.query() << std::endl;
+    auto queries = http::uri::split_query(myuri.query());
+    for(const auto& p : queries) {
+        std::cout << p.first << "\t" << p.second << std::endl;
+    }
+
+    this->crudMap["promotions"]->Get(message);
+    //pplx::task<void>([this, message](){});
 
     return;
 
@@ -67,7 +63,7 @@ void handler::handle_post(http_request message)
 
 void handler::handle_delete(http_request message)
 {
-     ucout <<  message.to_string() << endl;
+    ucout <<  message.to_string() << endl;
 
     message.reply(status_codes::OK, message.to_string());
     return;

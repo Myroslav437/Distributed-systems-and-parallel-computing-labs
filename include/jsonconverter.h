@@ -7,6 +7,7 @@
 
 class JsonConverter
 {
+public:
     static web::json::value promotionToJson(const Database::promotion_t& p);
     static web::json::value productsToJson(const Database::product_t& p);
     static web::json::value storeToJson(const Database::store_t& p);

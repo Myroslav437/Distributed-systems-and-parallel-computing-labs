@@ -2,6 +2,10 @@
 #define HANDLER_H
 
 #include "stdafx.h"
+#include "../include/crudcommandset.h"
+#include <map>
+#include <string>
+#include <memory>
 
 using namespace std;
 using namespace web;
@@ -14,7 +18,7 @@ class handler
 {
     public:
         handler(utility::string_t url);
-        
+
         pplx::task<void> open(){return m_listener.open();}
         pplx::task<void> close(){return m_listener.close();}
 
@@ -26,6 +30,7 @@ class handler
         void handle_error(pplx::task<void>& t);
 
         http_listener m_listener;
+        std::map<std::string, std::shared_ptr<CrudCommandSet>> crudMap;
 };
 
 #endif // HANDLER_H

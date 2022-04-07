@@ -16,6 +16,8 @@ public:
     // <productPrice, productName, productManufacturer>:
     using product_t = std::tuple<float, std::string,std::string>;
 
+protected:
+
     // promotions: promotionID, promotion_t:
     std::map<int, promotion_t> promotions;
     // stores: storeID, store_t:
@@ -41,5 +43,7 @@ private:
     // Unique single instance object pointer
     static Database *m_SingleInstance;
     static std::mutex m_Mutex;
+
+    friend class Dbcontroller;
 };
 #endif

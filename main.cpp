@@ -2,7 +2,7 @@
 
 #include "include/stdafx.h"
 #include "include/handler.h"
-#include "include/database.h"
+#include "include/dbcontroller.h"
 
 using namespace web;
 using namespace http;
@@ -55,22 +55,16 @@ void on_shutdown()
 }
 
 void initDatabase(){
-    Database::GetInstance()->products = std::map<int, Database::product_t>{
-        {1, Database::product_t(10.0, "Milk", "TexasDiary Co.")},
-        {2, Database::product_t(85.0, "Cheese", "Nestle UK Co.")},
-        {3, Database::product_t(17.0, "Chockolate", "IndianCocoa Co.")},
-        {4, Database::product_t(123.0, "Sparkling water", "CristalWater Co.")},
-        {5, Database::product_t(446.0, "Nutella", "Nestle Ukraine Co.")}
-    };
+    Dbcontroller::GetInstance()->addProduct({10.0, "Milk", "TexasDiary Co."});
+    Dbcontroller::GetInstance()->addProduct({85.0, "Cheese", "Nestle UK Co."});
+    Dbcontroller::GetInstance()->addProduct({17.0, "Chockolate", "IndianCocoa Co."});
+    Dbcontroller::GetInstance()->addProduct({123.0, "Sparkling water", "CristalWater Co."});
+    Dbcontroller::GetInstance()->addProduct({446.0, "Nutella", "Nestle Ukraine Co."});
 
-    Database::GetInstance()->promotions = std::map<int, Database::promotion_t>{
-        {1, Database::promotion_t("Buy 2 chocolates and get third for free", "27.03.2022", "10.04.2022")},
-        {2, Database::promotion_t("Get 10\% discount for all diary products", "05.05.2022", "12.05.2022")},
-        {3, Database::promotion_t("Giveaway of a brand new coffee machine", "06.03.2022", "06.04.2022")}
-    };
+    Dbcontroller::GetInstance()->addPromotion({"Buy 2 chocolates and get third for free", "27.03.2022", "10.04.2022"});
+    Dbcontroller::GetInstance()->addPromotion({"Get 10\% discount for all diary products", "05.05.2022", "12.05.2022"});
+    Dbcontroller::GetInstance()->addPromotion({"Giveaway of a brand new coffee machine", "06.03.2022", "06.04.2022"});
 
-    Database::GetInstance()->stores = std::map<int, Database::store_t>{
-        {1, Database::store_t("London, 50 Picadilly St.", "manager.picadilly@mystore.com", "066235423")},
-        {2, Database::store_t("Edinburgh, 10 Arthur's hill", "manager.edinburgh@mystore.com", "066137468")},
-    };
+    Dbcontroller::GetInstance()->addStore({"London, 50 Picadilly St.", "manager.picadilly@mystore.com", "066235423"});
+    Dbcontroller::GetInstance()->addStore({"Edinburgh, 10 Arthur's hill", "manager.edinburgh@mystore.com", "066137468"});
 }
